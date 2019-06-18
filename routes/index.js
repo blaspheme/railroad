@@ -20,8 +20,26 @@ router.get('/json', async (ctx, next) => {
     console.log(query_data);
     console.log(query_format);
     console.log("------------------------------------------------------------");
-    data = transform(query_data, query_format)["procesedGrammars"][0]["rules"];
-    ctx.body = data;
+    // data = transform(query_data, query_format)["procesedGrammars"][0]["rules"];
+    var result = transform(query_data, query_format);
+    var grammars = result.procesedGrammars.map(({ rules, references, name }) => {
+      var rules = rules.map(function (rule) {
+        const ref = references[rule.name] || {};
+        return {
+          name: rule.name,
+          diagram: rule.diagram,
+          usedBy: ref.usedBy,
+          references: ref.references
+        };
+      });
+
+      return {
+        name,
+        rules
+      };
+    });
+    // console.log(grammars);
+    ctx.body = grammars[0]["rules"];
   } catch (err) {
     ctx.body = err.message;
   }
